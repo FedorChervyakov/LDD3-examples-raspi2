@@ -32,40 +32,11 @@
 
 #include <sys/io.h> /* linux-specific */
 
-#ifdef __GLIBC__
-#  include <sys/perm.h>
-#endif
 
 #define PORT_FILE "/dev/port"
 
 char *prgname;
 
-#ifdef __i386__
-static int read_and_print_one(unsigned int port,int size)
-{
-    static int iopldone = 0;
-
-    if (port > 1024) {
-	if (!iopldone && iopl(3)) {
-	    fprintf(stderr, "%s: iopl(): %s\n", prgname, strerror(errno));
-	    return 1;
-	}
-	iopldone++;
-    } else if (ioperm(port,size,1)) {
-	fprintf(stderr, "%s: ioperm(%x): %s\n", prgname,
-		port, strerror(errno));
-	return 1;
-    }
-
-    if (size == 4)
-	printf("%04x: %08x\n", port, inl(port));
-    else if (size == 2)
-	printf("%04x: %04x\n", port, inw(port));
-    else
-	printf("%04x: %02x\n", port, inb(port));
-    return 0;
-}
-#else /* not i386 */
 
 static int read_and_print_one(unsigned int port,int size)
 {
@@ -92,8 +63,6 @@ static int read_and_print_one(unsigned int port,int size)
     }
     return 0;
 }
-
-#endif /* i386 */
 
 
 int main(int argc, char **argv)
